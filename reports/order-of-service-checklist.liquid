@@ -14,6 +14,61 @@ NOTES TO PRINT WITH PLAN (any note fields you'd like to print with the whole pla
 {% array notes_categories = "Production" %}
 PRINT ITEM TIMES
 {% assign print_plan_item_times = true %}
+
+{% comment %}
+========= LABELS ==========
+Lights
+GFX 1
+GFX 2
+Timer
+Stage Display
+Switch/Stream
+PGM
+StageTV
+Camera
+Sound
+Stage Manager
+Worship Leader
+Hosts
+Lobby
+Stage Crew
+Worship Team
+Sound cue
+choir
+Lobby slides
+Lighting design
+Program Director
+{% endcomment %}
+
+{% capture position_headers_map %}
+||Camera|
+||GFX 1|Notes;Timer;Stage Display
+||GFX 2|Notes;Timer;Stage Display
+||Lights|Notes
+||Program Director|
+||Sound - Broadcast|Notes
+||Sound - House|Notes
+||Stage Crew|
+||Stage Manager|Notes;Worship Team
+||Switch/Stream|Notes;PGM;StageTV
+||Tech Director|
+||Trainee|
+{% endcapture %}
+
+{% capture position_columns_notes_map %}
+|||Camera||
+|||GFX 1||GFX 1;GFX 2|Timer|Stage Display
+|||GFX 2||GFX 1;GFX 2|Timer|Stage Display
+|||Lights||Lights
+|||Program Director||
+|||Sound - Broadcast||Sound
+|||Sound - House||Sound
+|||Stage Crew||
+|||Stage Manager||Stage Manager|Worship Team
+|||Switch/Stream||Switch/Stream|PGM|StageTV
+|||Tech Director||
+|||Trainee||
+{% endcapture %}
 -->
 <html>
 
@@ -50,6 +105,7 @@ PRINT ITEM TIMES
     #plan th {
       background-color: black;
       color: white;
+      text-align: left;
     }
 
     .header {
@@ -164,7 +220,7 @@ PRINT ITEM TIMES
   <table id="header" width="100%">
     <tr>
       <td colspan=2 style="background-color: #009FFF; color:white; font-size: 20pt; font-weight: bold; text-align: center; padding: 3px;">{{ plan.dates }}</td>
-      <td rowspan=2 width="200pt" style="background-color: #009FFF; color:white; font-weight: bold; text-align: center;">{{ plan_person.position }}:</b><br /> {{ plan_person.person.name }}</td>
+      <td rowspan=2 width="200pt" style="background-color: #009FFF; color:white; font-weight: bold; text-align: center;">{{ plan_person.position }}:<br /> {{ plan_person.person.name }}</td>
     </tr>
   </table>
   <div style="background-color: black; height: 0pt; margin: 5pt 0;"></div>
@@ -296,11 +352,21 @@ PRINT ITEM TIMES
         <table id="plan">
           <thead>
             <tr>
-              <th>{% if note.category_name !="" %}{{note.category_name}}{% endif %}</th>
-              <th>{% if note.category_name !="" %}{{note.category_name}}{% endif %}</th>
-              <th>{% if note.category_name !="" %}{{note.category_name}}{% endif %}</th>
-              <th>{% if note.category_name !="" %}{{note.category_name}}{% endif %}</th>
-              <th>{% if note.category_name !="" %}{{note.category_name}}{% endif %}</th>
+              <th/>
+              <th>Title</th>
+              {% assign position_headers = position_headers_map | split: '||' %}
+              {% for position_header_map in position_headers %}
+              	{% assign position_header_parts = position_header_map | split: '|' %}
+                {% assign position = position_header_parts | first %}
+                {% if position == plan_person.position %}
+                  {% assign headers = position_header_parts | last | split: ';' %}
+                  {% for header in headers %}
+                    {% unless header == blank %}
+	                  <th>{{ header }}</th>
+                    {% endunless %}
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
             </tr>
           </thead>
           {% assign current_header_title = "" %}
@@ -348,7 +414,36 @@ PRINT ITEM TIMES
               <span style="background-color:eeeeee;font-size:7pt;">{{ current_header_title }}</span>&nbsp;&nbsp;
               {% assign current_header_printed = 0 %}
               {% endif %}
-              <strong>{{ item.title }}</strong><br /><span style="font-size:8pt;">{{ item.description }}</span></td>
+              <strong>{{ item.title }}</strong><br /><span style="font-size:8pt;">{{ item.description }}</span>
+            </td>
+
+            {% assign position_columns_notes = position_columns_notes_map | split: '|||' %}
+            {% for position_columns_notes_map in position_columns_notes %}
+              {% assign position_columns_notes_parts = position_columns_notes_map | split: '||' %}
+              {% assign position = position_columns_notes_parts | first %}
+              {% if position == plan_person.position %}
+                {% if position_columns_notes_parts[1] == blank %}
+                  {% continue %}
+                {% endif %}
+                {% assign columns = position_columns_notes_parts | last | split: '|' %}
+                {% for column in columns %}
+                  {% assign category_names = column | split: ';' %}
+                  <td>
+                  {% for name_raw in category_names %}
+                    {% assign name = name_raw | strip %}
+                    {% for note in item.notes %}
+                      {% if name == note.category_name %}
+                        {% unless forloop.first %}<br />{% endunless %}
+                        <span class="specific-note"><strong>{{ name }}:</strong> {{note.note}}</span>
+                      {% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                  </td>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+                                                                                 
+<!--                                                             
             <td class="item">{% for note in item.notes %}
               {% if note.category_name == plan_person.position %}<span class="specific-note">{{note.note}}</span>
               {% elsif plan_person.position contains "Sound" %}
@@ -369,6 +464,7 @@ PRINT ITEM TIMES
               {% endif %}
               {% endfor %}
             </td>
+-->
 
           </tr>
           {% endcase %}
