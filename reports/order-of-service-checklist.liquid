@@ -70,8 +70,33 @@ Program Director
 |||Trainee||
 {% endcapture %}
 -->
-<html>
 
+<!-- ROSTER -->
+{% capture roster_list %}
+<table border=0 cellspacing=10 cellpadding=0>
+  {% for category in categories_to_print %}
+    {% assign col_count = 0 %}
+    <tr>
+      <td width="200pt"><span style="clear: both; margin-top: 5px; font-weight: bold; font-size: 12pt;">{{ category }}</span></td>
+      {% for plan_person in plan.plan_people_not_declined %}
+      {% if (plan_person.category.name == category) or (plan_person.position == position_to_print)%}
+      {% if col_count > 10 %}
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      {% assign col_count = 0 %}
+      {% endif %}
+      <td><strong>{{ plan_person.position }}: </strong><br>{{ plan_person.person.name }}</td>
+      {% assign col_count = col_count | plus: 1 %}
+      {% endif %}
+      {% endfor %}
+    </tr>
+  {% endfor %}
+</table>
+{% endcapture %}
+<!-- END ROSTER -->
+
+<html>
 <head>
   <title>{{ plan.ministry.name }}:: {{ plan.dates }}</title>
   <style>
@@ -187,296 +212,257 @@ Program Director
 </head>
 
 <body>
-  <!-- ROSTER -->
-  {% capture roster_list %}
-  <table border=0 cellspacing=10 cellpadding=0>
-    {% for category in categories_to_print %}
-    {% assign col_count = 0 %}
-    <tr>
-      <td width="200pt"><span style="clear: both; margin-top: 5px; font-weight: bold; font-size: 12pt;">{{ category }}</span></td>
-      {% for plan_person in plan.plan_people_not_declined %}
-      {% if (plan_person.category.name == category) or (plan_person.position == position_to_print)%}
-      {% if col_count > 10 %}
-    </tr>
-    <tr>
-      <td>&nbsp;</td>
-      {% assign col_count = 0 %}
-      {% endif %}
-      <td><strong>{{ plan_person.position }}: </strong><br>{{ plan_person.person.name }}</td>
-      {% assign col_count = col_count | plus: 1 %}
-      {% endif %}
-      {% endfor %}
-    </tr>
-    {% endfor %}
-  </table>
-  {% endcapture %}
-  <!-- END ROSTER -->
-
   {% for category in categories_to_print %}
-  {% for plan_person in plan.plan_people_not_declined %}
-  {% if (plan_person.category.name == category) or (plan_person.position == position_to_print)%}
-  <!-- Print specific items for this position -->
-  <div style="page-break-before: always;"></div>
-  <table id="header" width="100%">
-    <tr>
-      <td colspan=2 style="background-color: #009FFF; color:white; font-size: 20pt; font-weight: bold; text-align: center; padding: 3px;">{{ plan.dates }}</td>
-      <td rowspan=2 width="200pt" style="background-color: #009FFF; color:white; font-weight: bold; text-align: center;">{{ plan_person.position }}:<br /> {{ plan_person.person.name }}</td>
-    </tr>
-  </table>
-  <div style="background-color: black; height: 0pt; margin: 5pt 0;"></div>
-  <table width="100%;">
-    <tr>
-      <td style="width: 150pt; border: solid 1px black; vertical-align: top; font-size: 8pt; padding: 5px; padding-top: 5px;">
-        <!-- TIMES -->
-        {% for time in plan.plan_times %}<b>{{ time.starts_at | date: '%I:%M' }}</b>&nbsp;&nbsp;{{ time.name }}<br />{% endfor %}
-        <br />
-        <!-- END TIMES -->
-        <!-- CHECKLIST -->
-        {% capture checklist_name %}CL-{{ plan_person.category.name }}-{{ plan_person.position }}{% endcapture %}
-        {% assign checklist_startup = 0 %}
-        {% assign checklist_between = 0 %}
-        {% assign checklist_shutdown = 0 %}
-
-        {% for note in plan.notes %}
-        {% if note.category_name == checklist_name %}
-        {% if note.note contains '*' %}
-        {% assign checklist_startup = 1 %}
-        {% elsif note.note contains '~'%}
-        {% assign checklist_shutdown = 1 %}
-        {% else %}
-        {% assign checklist_between = 1 %}
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-
-        {% if checklist_startup == 1 %}
-        <strong>STARTUP:</strong>
-        <table width="100%">
-          {% for note in plan.notes %}
-          {% if note.category_name == checklist_name %}
-          {% if note.note contains '*' %}
+    {% for plan_person in plan.plan_people_not_declined %}
+      {% if (plan_person.category.name == category) or (plan_person.position == position_to_print)%}
+        <!-- Print specific items for this position -->
+        <div style="page-break-before: always;"></div>
+        <table id="header" width="100%">
           <tr>
-            <td>
-              <div class="checkbox"></div>
-              &nbsp;{{ note.note | remove: '*' }}
-            </td>
+            <td colspan=2 style="background-color: #009FFF; color:white; font-size: 20pt; font-weight: bold; text-align: center; padding: 3px;">{{ plan.dates }}</td>
+            <td rowspan=2 width="200pt" style="background-color: #009FFF; color:white; font-weight: bold; text-align: center;">{{ plan_person.position }}:<br /> {{ plan_person.person.name }}</td>
           </tr>
-          {% endif %}
-          {% endif %}
-          {% endfor %}
         </table>
-        <br />
-        {% endif %}
-
-        {% if checklist_between == 1 %}
-        <strong>BEFORE EACH SERVICE:</strong>
-        <table width="100%">
-          {% for note in plan.notes %}
-          {% if note.category_name == checklist_name %}
-          {% if note.note contains '*' %}
-          {% elsif note.note contains '~' %}
-          {% else %}
+        <div style="background-color: black; height: 0pt; margin: 5pt 0;"></div>
+        <table width="100%;">
           <tr>
-            <td>
+            <td style="width: 150pt; border: solid 1px black; vertical-align: top; font-size: 8pt; padding: 5px; padding-top: 5px;">
+              <!-- TIMES -->
               {% for time in plan.plan_times %}
-              {% if forloop.length == 1 %}
-              {% assign current_service = "&nbsp;" %}
-              {% else %}
-              {% assign current_service = forloop.index %}
-              {% endif %}
-              {% for plan_person_time in plan_person.service_times %}
-              {% if plan_person_time.id == time.id %}
-              <div class="checkbox">{{ current_service }}</div>
-              {% endif %}
+                <b>{{ time.starts_at | date: '%I:%M' }}</b>
+                &nbsp;&nbsp;
+                {{ time.name }}
+                <br />
               {% endfor %}
+              <!-- END TIMES -->
+
+              <br />
+
+              <!-- CHECKLIST -->
+              {% capture checklist_name %}CL-{{ plan_person.category.name }}-{{ plan_person.position }}{% endcapture %}
+              {% assign checklist_startup = 0 %}
+              {% assign checklist_between = 0 %}
+              {% assign checklist_shutdown = 0 %}
+
+              {% for note in plan.notes %}
+                {% if note.category_name == checklist_name %}
+                  {% if note.note contains '*' %}
+                    {% assign checklist_startup = 1 %}
+                  {% elsif note.note contains '~'%}
+                    {% assign checklist_shutdown = 1 %}
+                  {% else %}
+                    {% assign checklist_between = 1 %}
+                  {% endif %}
+                {% endif %}
               {% endfor %}
-              &nbsp;{{ note.note | remove: '*' }}
-            </td>
-          </tr>
-          {% endif %}
-          {% endif %}
-          {% endfor %}
-        </table><br />
-        {% endif %}
 
-        {% if checklist_shutdown == 1 %}
-        <strong>SHUTDOWN:</strong><br />
-        <table width="100%">
-          {% for note in plan.notes %}
-          {% if note.category_name == checklist_name %}
-          {% if note.note contains '~' %}
-          <tr>
-            <td>
-              <div class="checkbox">&nbsp;</div>
-              &nbsp;{{ note.note | remove: '~' }}
-            </td>
-          </tr>
-          {% endif %}
-          {% endif %}
-          {% endfor %}
-        </table>
-        <br />
-        {% endif %}
-
-        <!-- END CHECKLIST -->
-        <!-- PLAN NOTES -->
-        {% if plan.notes.size > 0 %}
-        <br /> <b>Notes:</b>
-        {% endif %}
-        <!-- PRINT GENERAL NOTES DEFINED IN ARRAY -->
-        {% for my_note in notes_categories %}
-        {% for note in plan.notes %}
-        {% if my_note == note.category_name %}
-        {% if note.note != "" %}
-        <strong>{{ my_note }}</strong>:{{ note.note }}<br />
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-        {% endfor %}
-        <!-- PRINT SPECIFIC POSITION NOTES -->
-        {% capture plannotes_name %}{{ plan_person.category.name }} - {{ plan_person.position }}{% endcapture %}
-        {% for note in plan.notes %}
-        {% if note.category_name contains plannotes_name %}
-        {% if note.category_name contains "Checklist" %}
-        {% else %}
-        {% if note.note != "" %}
-        <strong>{{ note.category_name}}</strong>: {{ note.note }}<br />
-        {% endif %}
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-        <!-- END PLAN NOTES -->
-      </td>
-
-      <td valign="top">
-        <table id="plan">
-          <thead>
-            <tr>
-              <th/>
-              <th>Title</th>
-              {% assign position_headers = position_headers_map | split: '||' %}
-              {% for position_header_map in position_headers %}
-              	{% assign position_header_parts = position_header_map | split: '|' %}
-                {% assign position = position_header_parts | first %}
-                {% if position == plan_person.position %}
-                  {% assign headers = position_header_parts | last | split: ';' %}
-                  {% for header in headers %}
-                    {% unless header == blank %}
-	                  <th>{{ header }}</th>
-                    {% endunless %}
+              {% if checklist_startup == 1 %}
+                <strong>STARTUP:</strong>
+                <table width="100%">
+                  {% for note in plan.notes %}
+                    {% if note.category_name == checklist_name %}
+                      {% if note.note contains '*' %}
+                        <tr>
+                          <td>
+                            <div class="checkbox"></div>
+                            &nbsp;{{ note.note | remove: '*' }}
+                          </td>
+                        </tr>
+                      {% endif %}
+                    {% endif %}
                   {% endfor %}
+                </table>
+                <br />
+              {% endif %}
+
+              {% if checklist_between == 1 %}
+                <strong>BEFORE EACH SERVICE:</strong>
+                <table width="100%">
+                  {% for note in plan.notes %}
+                    {% if note.category_name == checklist_name %}
+                      {% if note.note contains '*' %}
+                      {% elsif note.note contains '~' %}
+                      {% else %}
+                        <tr>
+                          <td>
+                            {% for time in plan.plan_times %}
+                              {% if forloop.length == 1 %}
+                                {% assign current_service = "&nbsp;" %}
+                              {% else %}
+                                {% assign current_service = forloop.index %}
+                              {% endif %}
+                              {% for plan_person_time in plan_person.service_times %}
+                                {% if plan_person_time.id == time.id %}
+                                  <div class="checkbox">{{ current_service }}</div>
+                                {% endif %}
+                              {% endfor %}
+                            {% endfor %}
+                            &nbsp;{{ note.note | remove: '*' }}
+                          </td>
+                        </tr>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                </table>
+                <br />
+              {% endif %}
+
+              {% if checklist_shutdown == 1 %}
+                <strong>SHUTDOWN:</strong><br />
+                <table width="100%">
+                  {% for note in plan.notes %}
+                    {% if note.category_name == checklist_name %}
+                      {% if note.note contains '~' %}
+                        <tr>
+                          <td>
+                            <div class="checkbox">&nbsp;</div>
+                            &nbsp;{{ note.note | remove: '~' }}
+                          </td>
+                        </tr>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                </table>
+                <br />
+              {% endif %}
+              <!-- END CHECKLIST -->
+
+              <!-- PLAN NOTES -->
+              {% if plan.notes.size > 0 %}
+                <br /> <b>Notes:</b>
+              {% endif %}
+              <!-- PRINT GENERAL NOTES DEFINED IN ARRAY -->
+              {% for my_note in notes_categories %}
+                {% for note in plan.notes %}
+                  {% if my_note == note.category_name %}
+                    {% if note.note != "" %}
+                      <strong>{{ my_note }}</strong>:{{ note.note }}<br />
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+              <!-- PRINT SPECIFIC POSITION NOTES -->
+              {% capture plannotes_name %}{{ plan_person.category.name }} - {{ plan_person.position }}{% endcapture %}
+              {% for note in plan.notes %}
+                {% if note.category_name contains plannotes_name %}
+                  {% if note.category_name contains "Checklist" %}
+                  {% else %}
+                    {% if note.note != "" %}
+                      <strong>{{ note.category_name}}</strong>: {{ note.note }}<br />
+                    {% endif %}
+                  {% endif %}
                 {% endif %}
               {% endfor %}
-            </tr>
-          </thead>
-          {% assign current_header_title = "" %}
-          {% assign encountered_duringservice_item = 0 %}
-          {% for item in plan.items %}
-          {% case item.item_type %}
-          {% when 'Header' %}
-          {% assign current_header_title = item.title %}
-          {% assign current_header_printed = 0 %}
-          {% else %}
-          {% if item.is_preservice == false and encountered_duringservice_item == 0 %}
-          {% assign encountered_duringservice_item = 1 %}
-          <tr>
-            <td class="header" colspan="5"><strong>&nbsp;START OF SERVICE</strong></td>
-          </tr>
-          {% endif %}
-          <tr class="{% cycle 'even', 'odd' %}{% if item.is_preservice or item.is_postservice %}preservice{% endif %}">
-            <td class="item" width="50pt">
-              {% if item.is_preservice or item.is_postservice %}
-              {% if print_plan_item_times == true %}
-              {% for time in plan_person.service_times %}
-              {% for item_time in item.times %}
-              {% if item_time.time_id == time.id %}
-              <span style="background-color:eeeeee;font-size:7pt;>{{ item_time.actual_time | date: '%I:%M%p' | downcase }}<br /></span>
-                           			{% endif %}
-                           		{% endfor %}
-                       		{% endfor %}
-                          {% else %}
-                          	<span style=" background-color:eeeeee;font-size:7pt;">
-                {% if item.length != "0:00" %}
-                {{ item.length }} {% if item.is_preservice %}before service starts{% endif %}{% if item.is_postservice %}after service ends{% endif %}
-                {% endif %}
-              </span>
-              {% endif %}
-              {% else %}
-              <span style="background-color:eeeeee;font-size:7pt;font-weight:bold;">
-                {% if item.length != "0:00" %}
-                {{ item.length }}
-                {% endif %}
-              </span>
-              {% endif %}
-            </td>
-            <td class="item" width="300pt">
-              {% if current_header_printed == 1 %}
-              <span style="background-color:eeeeee;font-size:7pt;">{{ current_header_title }}</span>&nbsp;&nbsp;
-              {% assign current_header_printed = 0 %}
-              {% endif %}
-              <strong>{{ item.title }}</strong><br /><span style="font-size:8pt;">{{ item.description }}</span>
+              <!-- END PLAN NOTES -->
             </td>
 
-            {% assign position_columns_notes = position_columns_notes_map | split: '|||' %}
-            {% for position_columns_notes_map in position_columns_notes %}
-              {% assign position_columns_notes_parts = position_columns_notes_map | split: '||' %}
-              {% assign position = position_columns_notes_parts | first %}
-              {% if position == plan_person.position %}
-                {% if position_columns_notes_parts[1] == blank %}
-                  {% continue %}
-                {% endif %}
-                {% assign columns = position_columns_notes_parts | last | split: '|' %}
-                {% for column in columns %}
-                  {% assign category_names = column | split: ';' %}
-                  <td>
-                  {% for name_raw in category_names %}
-                    {% assign name = name_raw | strip %}
-                    {% for note in item.notes %}
-                      {% if name == note.category_name %}
-                        {% unless forloop.first %}<br />{% endunless %}
-                        <span class="specific-note"><strong>{{ name }}:</strong> {{note.note}}</span>
+            <td valign="top">
+              <table id="plan">
+                <thead>
+                  <tr>
+                    <th/>
+                    <th>Title</th>
+                    {% assign position_headers = position_headers_map | split: '||' %}
+                    {% for position_header_map in position_headers %}
+                      {% assign position_header_parts = position_header_map | split: '|' %}
+                      {% assign position = position_header_parts | first %}
+                      {% if position == plan_person.position %}
+                        {% assign headers = position_header_parts | last | split: ';' %}
+                        {% for header in headers %}
+                          {% unless header == blank %}
+                            <th>{{ header }}</th>
+                          {% endunless %}
+                        {% endfor %}
                       {% endif %}
                     {% endfor %}
-                  {% endfor %}
-                  </td>
-                {% endfor %}
-              {% endif %}
-            {% endfor %}
-                                                                                 
-<!--                                                             
-            <td class="item">{% for note in item.notes %}
-              {% if note.category_name == plan_person.position %}<span class="specific-note">{{note.note}}</span>
-              {% elsif plan_person.position contains "Sound" %}
-              {% if note.category_name contains "Sound" %}<span class="specific-note">{{note.note}}</span>
-              {% else %}
-              {% endif %}
-              {% endif %}{% endfor %}</td>
-            <td class="item" width="125pt">{% for note in item.notes %}
-              {% if plan_person.position contains "GFX 1" %}
-              {% if note.category_name contains "Timer" %}<div class="checkbox2"></div><span class="specific-note"><b>{{note.note}}</b></span>
-              {% else %}
-              {% endif %}
-              {% endif %}{% endfor %}</td>
-            <td class="item">{% for note in item.notes %}
-              {% if plan_person.position contains "GFX 1" %}
-              {% if note.category_name contains "Stage Display" %}<span class="specific-note">{{note.note}}</span>
-              {% endif %}
-              {% endif %}
-              {% endfor %}
-            </td>
--->
+                  </tr>
+                </thead>
+                {% assign current_header_title = "" %}
+                {% assign encountered_duringservice_item = 0 %}
+                {% for item in plan.items %}
+                  {% case item.item_type %}
+                    {% when 'Header' %}
+                      {% assign current_header_title = item.title %}
+                      {% assign current_header_printed = 0 %}
+                    {% else %}
+                      {% if item.is_preservice == false and encountered_duringservice_item == 0 %}
+                        {% assign encountered_duringservice_item = 1 %}
+                        <tr>
+                          <td class="header" colspan="5"><strong>&nbsp;START OF SERVICE</strong></td>
+                        </tr>
+                      {% endif %}
+                      <tr class="{% cycle 'even', 'odd' %}{% if item.is_preservice or item.is_postservice %}preservice{% endif %}">
+                        <td class="item" width="50pt">
+                          {% if item.is_preservice or item.is_postservice %}
+                            {% if print_plan_item_times == true %}
+                              {% for time in plan_person.service_times %}
+                                {% for item_time in item.times %}
+                                  {% if item_time.time_id == time.id %}
+                                    <span style="background-color:eeeeee;font-size:7pt;>{{ item_time.actual_time | date: '%I:%M%p' | downcase }}<br /></span>
+                                  {% endif %}
+                                {% endfor %}
+                              {% endfor %}
+                            {% else %}
+                              <span style=" background-color:eeeeee;font-size:7pt;">
+                                {% if item.length != "0:00" %}
+                                  {{ item.length }} {% if item.is_preservice %}before service starts{% endif %}{% if item.is_postservice %}after service ends{% endif %}
+                                {% endif %}
+                              </span>
+                            {% endif %}
+                          {% else %}
+                            <span style="background-color:eeeeee;font-size:7pt;font-weight:bold;">
+                              {% if item.length != "0:00" %}
+                                {{ item.length }}
+                              {% endif %}
+                            </span>
+                          {% endif %}
+                        </td>
+                        <td class="item" width="300pt">
+                          {% if current_header_printed == 1 %}
+                            <span style="background-color:eeeeee;font-size:7pt;">{{ current_header_title }}</span>&nbsp;&nbsp;
+                            {% assign current_header_printed = 0 %}
+                          {% endif %}
+                          <strong>{{ item.title }}</strong>
+                          <br />
+                          <span style="font-size:8pt;">{{ item.description }}</span>
+                        </td>
 
+                        {% assign position_columns_notes = position_columns_notes_map | split: '|||' %}
+                        {% for position_columns_notes_map in position_columns_notes %}
+                          {% assign position_columns_notes_parts = position_columns_notes_map | split: '||' %}
+                          {% assign position = position_columns_notes_parts | first %}
+                          {% if position == plan_person.position %}
+                            {% if position_columns_notes_parts[1] == blank %}
+                              {% continue %}
+                            {% endif %}
+                            {% assign columns = position_columns_notes_parts | last | split: '|' %}
+                            {% for column in columns %}
+                              {% assign category_names = column | split: ';' %}
+                              <td>
+                                {% for name_raw in category_names %}
+                                  {% assign name = name_raw | strip %}
+                                  {% for note in item.notes %}
+                                    {% if name == note.category_name %}
+                                      {% unless forloop.first %}<br />{% endunless %}
+                                      <span class="specific-note"><strong>{{ name }}:</strong> {{note.note}}</span>
+                                    {% endif %}
+                                  {% endfor %}
+                                {% endfor %}
+                              </td>
+                            {% endfor %}
+                          {% endif %}
+                        {% endfor %}
+                      </tr>
+                  {% endcase %}
+                {% endfor %}
+              </table>
+            </td>
           </tr>
-          {% endcase %}
-          {% endfor %}
         </table>
-      </td>
-    </tr>
-  </table>
-  {{ roster_list }}
-  {% endif %}
-  {% endfor %}
+
+        {{ roster_list }}
+      {% endif %}
+    {% endfor %}
   {% endfor %}
 </body>
-
 </html>
