@@ -1,11 +1,4 @@
 <!--
-CUSTOMIZATION:
-CATEGORY NAME OF NOTES TO PRINT FOR COLUMN 1
-{% assign notes_column_1_category = "" %}
-CATEGORY NAME OF NOTES TO PRINT FOR COLUMN 2
-{% assign notes_column_2_category = "" %}
-CATEGORY NAME OF NOTES TO PRINT FOR COLUMN 3
-{% assign notes_column_3_category = "" %}
 TEAMS OF PEOPLE TO PRINT REPORTS FOR
 {% array categories_to_print = "Production" %}
 POSITION TO PRINT (if you have one specific position outside of a TEAM you'd also like to print)
@@ -41,32 +34,32 @@ Program Director
 {% endcomment %}
 
 {% capture position_headers_map %}
-||Camera|
-||GFX 1|Notes;Timer;Stage Display
-||GFX 2|Notes;Timer;Stage Display
-||Lights|Notes
+||Camera|Camera
+||GFX 1|GFX 1
+||GFX 2|GFX 2
+||Lights|Lights
 ||Program Director|
-||Sound - Broadcast|Notes
-||Sound - House|Notes
+||Sound - Broadcast|Sound
+||Sound - House|Sound
 ||Stage Crew|
-||Stage Manager|Notes;Worship Team
-||Switch/Stream|Notes;PGM;StageTV
-||Tech Director|
+||Stage Manager|Stage
+||Switch/Stream|Switch
+||Tech Director|TD
 ||Trainee|
 {% endcapture %}
 
 {% capture position_columns_notes_map %}
-|||Camera||
-|||GFX 1||GFX 1;GFX 2|Timer|Stage Display
-|||GFX 2||GFX 1;GFX 2|Timer|Stage Display
+|||Camera||Camera
+|||GFX 1||GFX 1;GFX 2;Timer;Stage Display
+|||GFX 2||GFX 1;GFX 2;Timer;Stage Display
 |||Lights||Lights
 |||Program Director||
 |||Sound - Broadcast||Sound
 |||Sound - House||Sound
 |||Stage Crew||
-|||Stage Manager||Stage Manager|Worship Team
-|||Switch/Stream||Switch/Stream|PGM|StageTV
-|||Tech Director||
+|||Stage Manager||Stage Manager;Worship Team
+|||Switch/Stream||Switch/Stream;PGM;StageTV
+|||Tech Director||Lights;GFX 1;Timer;Stage Display;Switch/Stream;PGM;StageTV;Stage Manager;Worship Leader
 |||Trainee||
 {% endcapture %}
 -->
@@ -123,7 +116,7 @@ Program Director
     #plan {
       border-collapse: collapse;
       border: solid 1px black;
-      width: 100%;
+      width: 99%;
       font-size: 9pt;
     }
 
@@ -140,7 +133,7 @@ Program Director
     }
 
     #header {
-      width: 100%;
+      width: 99%;
     }
 
     .times {
@@ -185,8 +178,8 @@ Program Director
     .checkbox {
       text-align: center;
       color: #cccccc;
-      height: 15px;
-      width: 15px;
+      height: 10px;
+      width: 10px;
       border: 1px solid #000;
       background-color: #fff;
       float: left;
@@ -217,7 +210,7 @@ Program Director
       {% if (plan_person.category.name == category) or (plan_person.position == position_to_print)%}
         <!-- Print specific items for this position -->
         <div style="page-break-before: always;"></div>
-        <table id="header" width="100%">
+        <table id="header" width="99%">
           <tr>
             <td colspan=2 style="background-color: #009FFF; color:white; font-size: 20pt; font-weight: bold; text-align: center; padding: 3px;">{{ plan.dates }}</td>
             <td rowspan=2 width="200pt" style="background-color: #009FFF; color:white; font-weight: bold; text-align: center;">{{ plan_person.position }}:<br /> {{ plan_person.person.name }}</td>
@@ -417,7 +410,7 @@ Program Director
                             </span>
                           {% endif %}
                         </td>
-                        <td class="item" width="300pt">
+                        <td class="item" width="50%">
                           {% if current_header_printed == 1 %}
                             <span style="background-color:eeeeee;font-size:7pt;">{{ current_header_title }}</span>&nbsp;&nbsp;
                             {% assign current_header_printed = 0 %}
@@ -438,7 +431,7 @@ Program Director
                             {% assign columns = position_columns_notes_parts | last | split: '|' %}
                             {% for column in columns %}
                               {% assign category_names = column | split: ';' %}
-                              <td>
+                              <td style="padding: 15px 2px;">
                                 {% for name_raw in category_names %}
                                   {% assign name = name_raw | strip %}
                                   {% for note in item.notes %}
