@@ -432,15 +432,30 @@ Program Director
                             {% for column in columns %}
                               {% assign category_names = column | split: ';' %}
                               <td style="padding: 15px 2px;">
-                                {% for name_raw in category_names %}
-                                  {% assign name = name_raw | strip %}
-                                  {% for note in item.notes %}
-                                    {% if name == note.category_name %}
-                                      {% unless forloop.first %}<br />{% endunless %}
-                                      <span class="specific-note"><strong>{{ name }}:</strong> {{note.note}}</span>
-                                    {% endif %}
+                                <table>
+                                  {% for name_raw in category_names %}
+                                    {% assign name = name_raw | strip %}
+                                    {% for note in item.notes %}
+                                      {% if name == note.category_name %}
+                                        {% assign note_parts = note.note | split: ';' %}
+                                        {% for note_part in note_parts %}
+                                          <tr class="specific-note">
+                                            {%comment %}{% unless forloop.first %}<br />{% endunless %}{%endcomment%}
+                                            <td>
+                                              {% if forloop.first %}
+                                                <strong>{{ name }}:</strong>&nbsp;
+                                              {% endif %}
+                                            </td>
+                                            <td>{{note_part}}</td>
+                                          </tr>
+                                          {% unless forloop.last %}
+                                            <!--<br />-->
+                                          {% endunless %}
+                                        {% endfor %}
+                                      {% endif %}
+                                    {% endfor %}
                                   {% endfor %}
-                                {% endfor %}
+                                </table>
                               </td>
                             {% endfor %}
                           {% endif %}
